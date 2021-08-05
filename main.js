@@ -12,7 +12,7 @@ const newAgeInput = document.querySelector('#age')
 const newLikesText = document.querySelector('textarea')
 const charContainer = document.querySelector('section')
 
-// const baseURL = 
+const baseURL = `http://localhost:4000`; 
 
 function createCharacterCard(char) {
   let charCard = document.createElement('div')
@@ -31,3 +31,77 @@ function createCharacterCard(char) {
 function clearCharacters() {
   charContainer.innerHTML = ``
 }
+
+// this functions gets all characters from server
+function getAllChars() {
+  clearCharacters()
+
+  axios.get(`${baseURL}/characters`)
+    .then((res)=>{
+      for(let i = 0; i < res.data.length; i++){
+        createCharacterCard(res.data[i])
+      }
+    })
+}
+
+// this function gets a single character using id of the character button.
+const getOneChar = event => {
+  clearCharacters()
+  
+  axios.get(`${baseURL}/character/${event.target.id}`)
+    .then(res => {
+      createCharacterCard(res.data)
+    })
+}
+
+function getOldChars(event){
+  event.preventDefault()
+
+  clearCharacters()
+
+  axios.get(`${baseURL}/character/?age=${ageInput.value}`)
+    .then(res => {
+      for(let i = 0; i < res.data.length; i++){
+        createCharacterCard(res.data[i])
+      }
+    })
+
+    ageInput.value = ``
+}
+
+const createNewCharacter = event => {
+  event.preventDefault()
+  clearCharacters()
+
+  let newLikes = [...newLikesText.value.split(`,`)]
+
+  let body = {
+    firstName: newFirstInput.value,
+    lastName: newLastInput.value,
+    gender: newGenderDropDown.value,
+    age: newAgeInput.value,
+    likes: newLikes
+  }
+  axios.post(`${baseURL}/character`, body)
+    .then(res => {
+      for(let i = 0; i < res.data.length; i++){
+        createCharacterCard(res.data[i])
+      }
+    })
+
+    newFirstInput.value = ``
+    newLastInput.value = ``
+    newGenderDropDown.value = `female`
+    newAgeInput.value = ``
+    newLikes.value = ``
+}
+
+// Adding event listners for the buttons
+getAllBtn.addEventListener(`click`, getAllChars)
+for(let i = 0; i < charBtns.length; i++){
+  charBtns[i].addEventListener(`click`, getOneChar)
+}
+ageForm.addEventListener(`submit`, getOldChars)
+createForm.addEventListener(`submit`, createNewCharacter)
+
+getAllChars()
